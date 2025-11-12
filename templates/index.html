@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 Image Uploader</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        h1 { margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 1.5rem; font-weight: bold; }
+        #result a { color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Convert & Upload Image to S3</h1>
+    <form id="upload-form">
+        <div class="form-group">
+            <label for="sku">SKU Name:</label>
+            <input type="text" id="sku" name="sku" required>
+        </div>
+        <div class="form-group">
+            <label for="image">JPG/PNG Image:</label>
+            <input type="file" id="image" name="image" accept="image/jpeg, image/png" required>
+        </div>
+        <button type="submit" id="upload-button">Upload</button>
+    </form>
+    <div id="status"></div>
+    <div id="result"></div>
+</div>
+
+<script>
+    document.getElementById('upload-form').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent the form from submitting the traditional way
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        const uploadButton = document.getElementById('upload-button');
+
+        statusDiv.textContent = 'Uploading and converting...';
+        resultDiv.innerHTML = '';
+        uploadButton.disabled = true;
+
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                statusDiv.textContent = 'Upload Successful!';
+                statusDiv.style.color = 'green';
+                resultDiv.innerHTML = `<p>S3 Link: <a href="${data.s3_link}" target="_blank">${data.s3_link}</a></p>`;
+            } else {
+                throw new Error(data.error || 'An unknown error occurred.');
+            }
+        } catch (error) {
+            statusDiv.textContent = 'Upload Failed!';
+            statusDiv.style.color = 'red';
+            resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+        } finally {
+            uploadButton.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
