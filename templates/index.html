@@ -15,6 +15,29 @@
         button:hover { background-color: #0056b3; }
         #status { margin-top: 1.5rem; font-weight: bold; }
         #result a { color: #007bff; text-decoration: none; }
+        .copy-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+        }
+        .copy-btn:hover {
+            background-color: #5a6268;
+        }
+        .copy-btn:active {
+            background-color: #4e555b;
+        }
+        .link-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -61,7 +84,13 @@
             if (response.ok) {
                 statusDiv.textContent = 'Upload Successful!';
                 statusDiv.style.color = 'green';
-                resultDiv.innerHTML = `<p>S3 Link: <a href="${data.s3_link}" target="_blank">${data.s3_link}</a></p>`;
+                resultDiv.innerHTML = `
+                    <p>S3 Link: 
+                        <div class="link-container">
+                            <a href="${data.s3_link}" target="_blank">${data.s3_link}</a>
+                            <button class="copy-btn" onclick="copyToClipboard('${data.s3_link}')">Copy</button>
+                        </div>
+                    </p>`;
             } else {
                 throw new Error(data.error || 'An unknown error occurred.');
             }
@@ -73,6 +102,28 @@
             uploadButton.disabled = false;
         }
     });
+
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Change button text temporarily to show success
+            const buttons = document.querySelectorAll('.copy-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent === 'Copy') {
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    btn.style.backgroundColor = '#28a745';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                }
+            });
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy link to clipboard');
+        });
+    }
 </script>
 
 </body>
